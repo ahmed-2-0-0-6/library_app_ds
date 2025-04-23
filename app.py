@@ -1,19 +1,5 @@
 import streamlit as st
 import mysql.connector
-from dotenv import load_dotenv
-import os
-
-# Load .env file (for secrets like password)
-load_dotenv()
-
-# Connect to database
-def connect_db():
-    return mysql.connector.connect(
-        host=os.getenv("DB_HOST"),
-        user=os.getenv("DB_USER"),
-        password=os.getenv("DB_PASSWORD"),
-        database=os.getenv("DB_NAME")
-    )
 
 # --- Streamlit UI ---
 st.title("📚 Add New Book")
@@ -22,13 +8,22 @@ title = st.text_input("Book Title")
 author = st.text_input("Author")
 year = st.text_input("Year Published")
 
+# Connect to database
+def connect_db():
+    return mysql.connector.connect(
+        host=st.secrets["DB_HOST"],
+        user=st.secrets["DB_USER"],
+        password=st.secrets["DB_PASSWORD"],
+        database=st.secrets["DB_NAME"]
+    )
+
 if st.button("➕ Add Book"):
     if not title or not author or not year:
         st.warning("Please fill in all fields.")
     else:
         try:
             conn = connect_db()
-            cursor = conn.cursor()  # ✅ create cursor first
+            cursor = conn.cursor()
 
             sql = "INSERT INTO Books (title, author, year_published) VALUES (%s, %s, %s)"
             values = (title, author, int(year))
@@ -37,7 +32,6 @@ if st.button("➕ Add Book"):
 
             st.success("✅ Book added successfully!")
 
-            # Clean-up
             cursor.close()
             conn.close()
 
